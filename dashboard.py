@@ -1,7 +1,7 @@
-# dashboard.py – version cloud ready
+# dashboard.py – cloud ready (no winsound)
 import streamlit as st
 import pandas as pd
-import ccxt, ta, time, os, csv, winsound, requests
+import ccxt, ta, time, os, csv, requests
 from datetime import datetime
 
 # ---------- clés testnet ----------
@@ -66,7 +66,8 @@ def place_order(sig, price):
         msg = f"✅ {sig} {qty} {crypto} @ {avg_p:.2f}  |  SL: {sl_p}  |  TP: {tp_p}"
         requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
                       data={"chat_id": CHAT_ID, "text": msg}, timeout=5)
-        winsound.Beep(1000, 300)
+        # Beep Linux (ou silence)
+        print("\a")
         with open(LOG_FILE, 'a', newline='') as f:
             csv.writer(f).writerow([datetime.now(), avg_p, sig, qty, oid, sl_p, tp_p])
         return avg_p, sl_p, tp_p
