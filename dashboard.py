@@ -1,4 +1,4 @@
-# dashboard.py – futuriste néon
+# dashboard.py – version cloud ready
 import streamlit as st
 import pandas as pd
 import ccxt, ta, time, os, csv, winsound, requests
@@ -13,22 +13,6 @@ CHAT_ID   = '6313144414'
 
 exchange = ccxt.binance({'apiKey': API_KEY, 'secret': API_SEC, 'enableRateLimit': True})
 exchange.set_sandbox_mode(True)
-
-# ---------- néon CSS ----------
-st.set_page_config(page_title="Néon Bot", layout="wide")
-st.markdown("""
-<style>
-/* fond sombre */
-body {background-color: #0e0e0e;}
-/* cartes néon */
-.css-1r6slb0 {background-color: rgba(0,255,255,0.08); border: 1px solid #00ffff; border-radius: 12px; box-shadow: 0 0 10px #00ffff;}
-/* boutons néon */
-.stButton>button {border-radius: 50%; width: 80px; height: 80px; border: 2px solid #00ffff; color: #00ffff; background: rgba(0,255,255,0.1); font-size: 18px; box-shadow: 0 0 15px #00ffff;}
-.stButton>button:hover {background: rgba(0,255,255,0.3);}
-/* titres néon */
-h1, h2, h3 {color: #00ffff; text-shadow: 0 0 8px #00ffff;}
-</style>
-""", unsafe_allow_html=True)
 
 # ---------- multilingue ----------
 texts = {
@@ -46,8 +30,8 @@ texts = {
 lang = st.sidebar.selectbox("🌐 Language", options=['fr', 'en', 'ar'])
 t = texts[lang]
 
-# ---------- sidebar néon ----------
-st.sidebar.markdown("## ⚙️ **Néon Settings**")
+# ---------- sidebar ----------
+st.sidebar.markdown("## ⚙️ Settings")
 interval = st.sidebar.selectbox("⏰ Interval", ['1m', '5m', '15m', '1h'])
 crypto   = st.sidebar.selectbox("💰 Crypto", ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'])
 
@@ -83,7 +67,7 @@ def place_order(sig, price):
         requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
                       data={"chat_id": CHAT_ID, "text": msg}, timeout=5)
         winsound.Beep(1000, 300)
-        with open('trades_fake.csv', 'a', newline='') as f:
+        with open(LOG_FILE, 'a', newline='') as f:
             csv.writer(f).writerow([datetime.now(), avg_p, sig, qty, oid, sl_p, tp_p])
         return avg_p, sl_p, tp_p
     except Exception as e:
@@ -91,9 +75,9 @@ def place_order(sig, price):
         return None, None, None
 
 def stats():
-    if not os.path.exists('trades_fake.csv'):
+    if not os.path.exists(LOG_FILE):
         return 0, None, None, None
-    df = pd.read_csv('trades_fake.csv')
+    df = pd.read_csv(LOG_FILE)
     if df.empty:
         return 0, None, None, None
     df['datetime'] = pd.to_datetime(df['datetime'])
@@ -104,9 +88,9 @@ def stats():
     return len(df), avg_gain, avg_time, df['price'].iloc[-1]
 
 def read_trades(n=10):
-    if not os.path.exists('trades_fake.csv'):
+    if not os.path.exists(LOG_FILE):
         return pd.DataFrame()
-    return pd.read_csv('trades_fake.csv').tail(n)
+    return pd.read_csv(LOG_FILE).tail(n)
 
 # ---------- streamlit ----------
 if 'running' not in st.session_state:
@@ -132,7 +116,7 @@ if st.session_state.running:
     st.metric(t['signal'], sig.upper())
     st.metric(t['time'], datetime.now().strftime("%H:%M:%S"))
 
-    # néon chart with SL/TP
+    # graph with SL/TP lines
     chart_df = df[['t', 'c']].copy()
     chart_df = chart_df.rename(columns={'t': 'index'}).set_index('index')
     if sig != 'neutral':
