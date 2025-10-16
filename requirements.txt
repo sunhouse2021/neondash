@@ -1,5 +1,5 @@
-streamlit==1.28.1
-ccxt==4.1.22
-pandas==1.5.3
-ta==0.10.2
-requests==2.31.0
+streamlit>=1.28
+ccxt>=4.1.22
+pandas>=1.5.3
+ta>=0.10.2
+requests>=2.31.0
